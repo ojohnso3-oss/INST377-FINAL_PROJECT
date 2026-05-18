@@ -5,7 +5,7 @@ CityWeather is a full-stack weather web application created as a solo INST 377 f
 ## Live Links
 
 - GitHub Repository: (https://github.com/ojohnso3-oss/INST377-FINAL_PROJECT)
-- Vercel Deployment: https://vercel.com/ojohnso3-oss-projects/inst-377-final-project
+- Vercel Deployment: https://vercel.com/ojohnso3-oss-projects/inst-377-final-project/CESwE5Z6MRavhrMbNLbkDWnQdArL
 - Developer Manual: [docs/DeveloperManual.md](docs/DeveloperManual.md)
 
 ## Target Browsers
