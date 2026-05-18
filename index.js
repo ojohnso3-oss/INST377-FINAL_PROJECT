@@ -1,218 +1,120 @@
 require("dotenv").config();
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fetch = require('node-fetch');
-const { createClient } = require('@supabase/supabase-js');
-const dotenv = require('dotenv');
 
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-dotenv.config();
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-const requiredEnv = ['SUPABASE_URL', 'SUPABASE_KEY', 'WEATHER_API_KEY'];
-const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+app.use(express.static(path.join(__dirname, "public")));
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+const weatherApiKey = process.env.WEATHER_API_KEY;
 
-if (missingEnv.length > 0) {
-  console.warn(`Missing environment variables: ${missingEnv.join(', ')}`);
-}
-let supabase = null;
-if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-}
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-function requireSupabase(res) {
-  if (!supabase) {
-    res.status(500).json({
-      success: false,
-      error: 'Supabase is not configured. Check SUPABASE_URL and SUPABASE_KEY in your .env file.'
-    });
-    return false;
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "Server is running" });
+});
+
+app.get("/api/cities", async (req, res) => {
+  const { data, error } = await supabase
+    .from("cities")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
-  return true;
-}
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'CityWeather API is running.',
-    env: {
-      SUPABASE_URL: Boolean(process.env.SUPABASE_URL),
-      SUPABASE_KEY: Boolean(process.env.SUPABASE_KEY),
-      WEATHER_API_KEY: Boolean(process.env.WEATHER_API_KEY)
-    }
-  });
-  
-});
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+
+  res.json({ success: true, data });
 });
 
-app.get('/about', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'about.html'));
-});
-
-app.get('/explore', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'explore.html'));
-});
-app.get('/api/cities', async (req, res) => {
-  if (!requireSupabase(res)) return;
-
-  try {
-    const { data, error } = await supabase
-      .from('cities')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    res.json({ success: true, data });
-  } catch (err) {
-    console.error('GET /api/cities error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-app.post('/api/cities', async (req, res) => {
-  if (!requireSupabase(res)) return;
-
+app.post("/api/cities", async (req, res) => {
   const { name, country, note } = req.body;
 
   if (!name || !country) {
     return res.status(400).json({
       success: false,
-      error: 'City name and country are required.'
+      error: "City name and country are required"
     });
   }
 
-  try {
-    const { data, error } = await supabase
-      .from('cities')
-      .insert([{ name, country, note: note || '' }])
-      .select();
+  const { data, error } = await supabase
+    .from("cities")
+    .insert([{ name, country, note: note || "" }])
+    .select();
 
-    if (error) throw error;
-    res.status(201).json({ success: true, data });
-  } catch (err) {
-    console.error('POST /api/cities error:', err);
-    res.status(500).json({ success: false, error: err.message });
+  if (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
+
+  res.status(201).json({ success: true, data });
 });
-app.get('/api/weather/:city', async (req, res) => {
-  const city = req.params.city;
-  const apiKey = process.env.WEATHER_API_KEY;
 
-  if (!apiKey) {
-    return res.status(500).json({
-      success: false,
-      error: 'Weather API key is not configured. Check WEATHER_API_KEY in your .env file.'
-    });
-  }
-
-  try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=imperial`;
-    const response = await fetch(url);
-    const payload = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        success: false,
-        error: payload.message || 'Weather lookup failed.'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        city: payload.name,
-        country: payload.sys.country,
-        temp: Math.round(payload.main.temp),
-        feels_like: Math.round(payload.main.feels_like),
-        humidity: payload.main.humidity,
-        description: payload.weather[0].description,
-        icon: payload.weather[0].icon,
-        wind_speed: Math.round(payload.wind.speed),
-        visibility: payload.visibility
-      }
-    });
-  } catch (err) {
-    console.error('GET /api/weather error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-app.get('/api/geocode/:city', async (req, res) => {
-  const city = req.params.city;
-
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'CityWeather INST377 Student Project'
-      }
-    });
-    const payload = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        success: false,
-        error: 'Map lookup failed.'
-      });
-    }
-
-    if (!payload.length) {
-      return res.status(404).json({
-        success: false,
-        error: 'City location not found.'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        lat: payload[0].lat,
-        lon: payload[0].lon,
-        display_name: payload[0].display_name
-      }
-    });
-  } catch (err) {
-    console.error('GET /api/geocode error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-app.delete('/api/cities/:id', async (req, res) => {
-  if (!requireSupabase(res)) return;
-
+app.delete("/api/cities/:id", async (req, res) => {
   const { id } = req.params;
 
-  try {
-    const { error } = await supabase
-      .from('cities')
-      .delete()
-      .eq('id', id);
+  const { error } = await supabase
+    .from("cities")
+    .delete()
+    .eq("id", id);
 
-    if (error) throw error;
-    res.json({ success: true, message: 'City deleted.' });
-  } catch (err) {
-    console.error('DELETE /api/cities error:', err);
-    res.status(500).json({ success: false, error: err.message });
+  if (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+
+  res.json({ success: true, message: "City deleted." });
+});
+
+app.get("/api/weather/:city", async (req, res) => {
+  const city = req.params.city;
+
+  try {
+    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${weatherApiKey}&units=imperial`;
+
+    const response = await fetch(weatherUrl);
+    const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        error: data.message || "Weather data not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        city: data.name,
+        country: data.sys.country,
+        temp: data.main.temp,
+        feels_like: data.main.feels_like,
+        humidity: data.main.humidity,
+        description: data.weather[0].description,
+        icon: data.weather[0].icon,
+        wind_speed: data.wind.speed,
+        visibility: data.visibility
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 });
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+
+module.exports = app;
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
-
-module.exports = app;
