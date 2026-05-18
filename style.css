@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>CityWeather</title>
+
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <h1>CityWeather</h1>
+    </div>
+
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/explore.html">Explore</a></li>
+      <li><a href="/about.html">About</a></li>
+    </ul>
+  </nav>
+  <header class="hero">
+    <div class="hero-content">
+      <h2>Explore Weather Around The World</h2>
+
+      <p>
+        Search any city and view live weather conditions,
+        compare cities visually, and save your favorite places.
+      </p>
+
+      <a href="/explore.html" class="btn">
+        Start Exploring
+      </a>
+    </div>
+  </header>
+  <section class="features">
+
+    <div class="feature-card">
+      <h3>Live Weather</h3>
+      <p>
+        View real-time weather data including temperature,
+        humidity, and wind speed.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <h3>Compare Cities</h3>
+      <p>
+        Use interactive charts to compare weather conditions
+        across multiple cities.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <h3>Map Integration</h3>
+      <p>
+        Pin cities to an interactive map and explore
+        locations visually.
+      </p>
+    </div>
+
+  </section>
+  <footer class="footer">
+    <p>
+      Solo Project • INST377 • University of Maryland
+    </p>
+  </footer>
+
+  <script src="/js/home.js"></script>
+
+</body>
+</html>

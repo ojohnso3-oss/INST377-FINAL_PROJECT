@@ -1,0 +1,21 @@
+{
+  "name": "cityweather-app",
+  "version": "1.0.0",
+  "description": "City Weather Explorer - INST377 Final Project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node -e \"console.log('No automated tests yet. Use docs/DeveloperManual.md manual testing checklist.')\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
