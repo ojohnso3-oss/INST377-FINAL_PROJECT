@@ -21,6 +21,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 const requiredEnv = ['SUPABASE_URL', 'SUPABASE_KEY', 'WEATHER_API_KEY'];
 const missingEnv = requiredEnv.filter((key) => !process.env[key]);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
 if (missingEnv.length > 0) {
   console.warn(`Missing environment variables: ${missingEnv.join(', ')}`);
@@ -50,6 +52,7 @@ app.get('/api/health', (req, res) => {
       WEATHER_API_KEY: Boolean(process.env.WEATHER_API_KEY)
     }
   });
+  
 });
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
