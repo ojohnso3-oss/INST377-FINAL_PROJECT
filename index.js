@@ -1,3 +1,4 @@
+app.use(express.static(path.join(__dirname, "public")));
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -10,20 +11,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Environment variable checks
 const requiredEnv = ['SUPABASE_URL', 'SUPABASE_KEY', 'WEATHER_API_KEY'];
 const missingEnv = requiredEnv.filter((key) => !process.env[key]);
 
 if (missingEnv.length > 0) {
   console.warn(`Missing environment variables: ${missingEnv.join(', ')}`);
 }
-
-// Supabase client
 let supabase = null;
 if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
   supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
@@ -39,8 +35,6 @@ function requireSupabase(res) {
   }
   return true;
 }
-
-// Health check route for debugging
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -52,8 +46,6 @@ app.get('/api/health', (req, res) => {
     }
   });
 });
-
-// Page routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -65,8 +57,6 @@ app.get('/about', (req, res) => {
 app.get('/explore', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'explore.html'));
 });
-
-// GET saved cities
 app.get('/api/cities', async (req, res) => {
   if (!requireSupabase(res)) return;
 
@@ -83,8 +73,6 @@ app.get('/api/cities', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// POST save city
 app.post('/api/cities', async (req, res) => {
   if (!requireSupabase(res)) return;
 
@@ -110,8 +98,6 @@ app.post('/api/cities', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// GET live weather
 app.get('/api/weather/:city', async (req, res) => {
   const city = req.params.city;
   const apiKey = process.env.WEATHER_API_KEY;
@@ -154,9 +140,6 @@ app.get('/api/weather/:city', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-
-// GET geocoding data for map pins through backend
 app.get('/api/geocode/:city', async (req, res) => {
   const city = req.params.city;
 
@@ -196,8 +179,6 @@ app.get('/api/geocode/:city', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// DELETE saved city
 app.delete('/api/cities/:id', async (req, res) => {
   if (!requireSupabase(res)) return;
 
@@ -216,8 +197,6 @@ app.delete('/api/cities/:id', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-// Fallback for unknown frontend routes
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
