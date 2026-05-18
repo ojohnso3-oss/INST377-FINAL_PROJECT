@@ -1,10 +1,14 @@
-app.use(express.static(path.join(__dirname, "public")));
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fetch = require('node-fetch');
 const { createClient } = require('@supabase/supabase-js');
 const dotenv = require('dotenv');
+
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 dotenv.config();
 
