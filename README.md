@@ -106,4 +106,4 @@ Full setup, API documentation, testing instructions, known bugs, and future road
 
 ## Author
 
-Solo project by KDP for INST 377 at the University of Maryland.
+Solo project by Omolayo Johnson for INST 377 at the University of Maryland.
